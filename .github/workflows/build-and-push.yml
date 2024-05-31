@@ -18,9 +18,9 @@ jobs:
       id: vars
       run: |
         if [ "${GITHUB_REF##*/}" == "staging" ]; then
-          echo "::set-output name=suffix::staging"
+          echo "IMAGE_SUFFIX=staging" >> $GITHUB_ENV
         elif [ "${GITHUB_REF##*/}" == "master" ]; then
-          echo "::set-output name=suffix::master"
+          echo "IMAGE_SUFFIX=master" >> $GITHUB_ENV
         fi
 
     - name: Build and push backend Docker image
