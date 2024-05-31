@@ -1,0 +1,57 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - master
+
+jobs:
+  update-branches:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Update staging and master branches
+      run: |
+        git config --global user.email "adolpheribeiro7@gmail.com"
+        git config --global user.name "adolp26"
+        git fetch origin
+        git checkout staging
+        git merge --allow-unrelated-histories origin/dev
+        git push origin staging
+        git checkout master
+        git merge --allow-unrelated-histories origin/dev
+        git push origin master
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Build and push frontend Docker image
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        cd frontend
+        docker build -t $DOCKER_USERNAME/frontend .
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        docker push $DOCKER_USERNAME/frontend
+
+    - name: Build and push backend Docker image
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        cd backend
+        docker build -t $DOCKER_USERNAME/backend .
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        docker push $DOCKER_USERNAME/backend
