@@ -7,30 +7,40 @@ on:
       - master
 
 jobs:
-   build-and-push:
+  build-and-push:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
       
+    - name: Set Docker image suffix
+      id: vars
+      run: |
+        if [ "${GITHUB_REF##*/}" == "staging" ]; then
+          echo "::set-output name=suffix::staging"
+        elif [ "${GITHUB_REF##*/}" == "master" ]; then
+          echo "::set-output name=suffix::master"
+        fi
+
     - name: Build and push frontend Docker image
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        IMAGE_SUFFIX: ${{ steps.vars.outputs.suffix }}
       run: |
         cd frontend
-        docker build -t $DOCKER_USERNAME/frontend .
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        docker push $DOCKER_USERNAME/frontend
+        docker build -t $DOCKER_USERNAME/frontend:${IMAGE_SUFFIX} .
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker push $DOCKER_USERNAME/frontend:${IMAGE_SUFFIX}
 
     - name: Build and push backend Docker image
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        IMAGE_SUFFIX: ${{ steps.vars.outputs.suffix }}
       run: |
         cd backend
-        docker build -t $DOCKER_USERNAME/backend .
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        docker push $DOCKER_USERNAME/backend
+        docker build -t $DOCKER_USERNAME/backend:${IMAGE_SUFFIX} .
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker push $DOCKER_USERNAME/backend:${IMAGE_SUFFIX}
