@@ -48,4 +48,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
             docker stop backend || true
             docker rm backend || true
-            docker run -d --name backend -p 3001:3001 ${{ secrets.DOCKER_USERNAME }}/backend:latest
+            docker run -d --name backend -p 8001:3001 ${{ secrets.DOCKER_USERNAME }}/backend:latest
