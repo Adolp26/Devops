@@ -56,8 +56,10 @@ jobs:
     
     - name: Add SSH key
       run: |
+        mkdir -p ~/.ssh
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+      
       
 
     - name: Deploy to AWS EC2 (Backend and Frontend)
