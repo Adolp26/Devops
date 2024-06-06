@@ -1,4 +1,4 @@
-name: Deploy to AWS EC2
+name: Deploy to AWS EC2 (master)
 
 on:
   push:
@@ -6,48 +6,43 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-master:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout do código
         uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
+      - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to DockerHub
+      - name: Login no DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push backend Docker image
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build e push da imagem Docker do backend (master)
         run: |
           cd backend
-          docker build -t $DOCKER_USERNAME/backend:master .
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker push $DOCKER_USERNAME/backend:master
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:master .
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKER_USERNAME }}/backend:master
 
-      - name: Build and push frontend Docker image
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build e push da imagem Docker do frontend (master)
         run: |
           cd frontend
-          docker build -t $DOCKER_USERNAME/frontend:master .
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker push $DOCKER_USERNAME/frontend:master
+          cp .env.master .env  # Copia o arquivo .env.master para .env
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:master .
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKER_USERNAME }}/frontend:master
 
-      - name: Add SSH key
+      - name: Adicionar chave SSH
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/id_rsa
           chmod 600 /tmp/id_rsa
 
-      - name: SSH and deploy to EC2 (Backend and Frontend)
+      - name: SSH e deploy no EC2 (Backend)
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -56,10 +51,19 @@ jobs:
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend:master
-            docker stop backend || true
-            docker rm backend || true
-            docker run -d --name backend -p 3001:3001 ${{ secrets.DOCKER_USERNAME }}/backend:master
+            docker stop backend-master || true
+            docker rm backend-master || true
+            docker run -d --name backend-master -p 3001:3001 ${{ secrets.DOCKER_USERNAME }}/backend:master
+
+      - name: SSH e deploy no EC2 (Frontend)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key_path: /tmp/id_rsa
+          script: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:master
-            docker stop frontend || true
-            docker rm frontend || true
-            docker run -d --name frontend -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/frontend:master
+            docker stop frontend-master || true
+            docker rm frontend-master || true
+            docker run -d --name frontend-master -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/frontend:master
