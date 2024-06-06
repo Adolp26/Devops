@@ -58,8 +58,8 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend:master
             docker stop backend || true
             docker rm backend || true
-            docker run -d --name backend -p 3001:5001 ${{ secrets.DOCKER_USERNAME }}/backend:master
+            docker run -d --name backend -p 3001:3001 ${{ secrets.DOCKER_USERNAME }}/backend:master
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:master
             docker stop frontend || true
             docker rm frontend || true
-            docker run -d --name frontend -p 3000:5000 ${{ secrets.DOCKER_USERNAME }}/frontend:master
+            docker run -d --name frontend -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/frontend:master
