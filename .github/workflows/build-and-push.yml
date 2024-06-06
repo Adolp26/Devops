@@ -3,6 +3,7 @@ name: Build, Push Docker Image and Deploy to AWS EC2
 on:
   push:
     branches:
+      - staging
       - master
 
 jobs:
