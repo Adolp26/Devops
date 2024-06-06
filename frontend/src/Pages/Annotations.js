@@ -132,7 +132,7 @@ function App() {
   return (
     <div id="app">
       <aside>
-        <strong>Caderno de Notas</strong>
+        <strong>Caderno de Notas teste</strong>
         <form onSubmit={handleSubmit}>
 
           <div className="input-block">
