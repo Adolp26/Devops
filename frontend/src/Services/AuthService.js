@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode as jwt_decode } from 'jwt-decode';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://23.22.151.80:3001/api/v1';
+const API_URL = process.env.REACT_APP_API_URL || 'http://default-url:3001/api/v1';
 
 
 const AuthService = {
