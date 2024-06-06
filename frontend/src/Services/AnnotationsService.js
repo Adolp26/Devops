@@ -7,7 +7,7 @@ const token = sessionStorage.getItem('token');
 const userId = sessionStorage.getItem('userId'); // Certifique-se de armazenar o userId durante o login
 
 export const api = axios.create({
-    baseURL: 'http://localhost:8080/api/v1',
+    baseURL: 'http://23.22.151.80:3001/api/v1',
     headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
