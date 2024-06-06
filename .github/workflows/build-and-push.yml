@@ -56,8 +56,9 @@ jobs:
     
     - name: Add SSH key
       run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/id_rsa
-        chmod 600 /tmp/id_rsa
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+      
 
     - name: Deploy to AWS EC2 (Backend and Frontend)
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'
@@ -65,7 +66,7 @@ jobs:
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
-        key: /tmp/id_rsa
+        key: ~/.ssh/id_rsa
         script: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker pull $DOCKER_USERNAME/backend:${IMAGE_SUFFIX}
@@ -76,3 +77,4 @@ jobs:
           docker stop frontend || true
           docker rm frontend || true
           docker run -d --name frontend -p 3000:3000 $DOCKER_USERNAME/frontend:${IMAGE_SUFFIX}
+      
